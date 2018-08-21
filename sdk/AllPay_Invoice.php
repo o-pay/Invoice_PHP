@@ -1,8 +1,6 @@
 <?php
 /*
 電子發票SDK
-版本:v1.1.180426
-API: V1.3.10
 @author Wesley
 */
 
@@ -145,12 +143,6 @@ abstract class OPayDelayFlagType
 // 交易類別
 abstract class OPayPayTypeCategory
 {
-	// ECBANK
-	const Ecbank = '1';
-  
-	// ECPAY
-	const Ecpay = '2';
-	
 	// ALLPAY
 	const Allpay = '3';
 }
@@ -585,9 +577,9 @@ class Opay_INVOICE
 				$sItemName 	.= (isset($value2['ItemName']))		? $value2['ItemName'] 		: '' ;
 				$sItemCount 	.= (int) $value2['ItemCount'] ;
 				$sItemWord 	.= (isset($value2['ItemWord'])) 	? $value2['ItemWord'] 		: '' ;
-				$sItemPrice 	.= (int) $value2['ItemPrice'] ;		
+				$sItemPrice 	.= $value2['ItemPrice'] ;		
 				$sItemTaxType 	.= (isset($value2['ItemTaxType'])) 	? $value2['ItemTaxType'] 	: '' ;
-				$sItemAmount	.= (int) $value2['ItemAmount'] ;
+				$sItemAmount	.= $value2['ItemAmount'] ;
 				$sItemRemark 	.= (isset($value2['ItemRemark'])) 	? $value2['ItemRemark'] 	: '' ;
 				
 				if( $nItems_Foreach_Count < $nItems_Count_Total )
@@ -622,6 +614,7 @@ class Opay_INVOICE
     	function check_extend_string($arParameters = array()){
 		
     		$arErrors = array();
+    		$nCheck_Amount = 0 ; 	// 驗證總金額
 
     		// 4.廠商自訂編號
 	        	
@@ -810,7 +803,7 @@ class Opay_INVOICE
 		{
 			array_push($arErrors, "13:Invalid Donation.");
 		}
-		// *若統一編號有值時，則VAL = '2' (不捐贈)
+		// *若統一編號有值時，則VAL = '0' (不捐贈)
 		if (strlen($arParameters['CustomerIdentifier']) > 0 && $arParameters['Donation'] == OPayDonation::Yes )
 		{
 			array_push($arErrors, "13:CustomerIdentifier Donation should be No.");
@@ -1001,16 +994,20 @@ class Opay_INVOICE
 					}
 					
 					// *ItemPrice數字判斷
-	        			if ( !preg_match('/^[-0-9]*$/', $value['ItemPrice']) )
+	        			if ( !preg_match('/(^[-0-9]*$)|([0-9]+\.[0-9]+)/', $value['ItemPrice']) )
 	        			{
-	        				array_push($arErrors, '23:Invalid ItemPrice.A');
+	        				array_push($arErrors, '23:Invalid ItemPrice.');
 	        			}
 	        			
 	        			// *ItemAmount數字判斷
-	        			if ( !preg_match('/^[-0-9]*$/', $value['ItemAmount']) )
+	        			if ( !preg_match('/(^[-0-9]*$)|([0-9]+\.[0-9]+)/', $value['ItemAmount']) )
 	        			{
-	        				array_push($arErrors, '25:Invalid ItemAmount.B');
-	        			}	
+	        				array_push($arErrors, '25:Invalid ItemAmount.');
+	        			}
+	        			else
+	        			{
+	        				$nCheck_Amount = $nCheck_Amount + $value['ItemAmount'] ;
+	        			}
 	        			
 	        			// V1.0.3
 	        			// *ItemRemark 預設最大長度為40碼 如果有此欄位才判斷
@@ -1021,7 +1018,13 @@ class Opay_INVOICE
 							array_push($arErrors, '143:ItemRemark max length as 40.');
 						}
 					}
-	        		}	
+	        		}
+
+	        		// *檢查商品總金額
+				if ( $arParameters['SalesAmount'] != round($nCheck_Amount))
+				{
+					array_push($arErrors, "18.2:Invalid SalesAmount.");
+				}	
 	        	}
 	        }
 
@@ -1164,9 +1167,9 @@ class Opay_INVOICE_DELAY
 				$sItemName 	.= (isset($value2['ItemName']))		? $value2['ItemName'] 		: '' ;
 				$sItemCount 	.= (int) $value2['ItemCount'] ;
 				$sItemWord 	.= (isset($value2['ItemWord'])) 	? $value2['ItemWord'] 		: '' ;
-				$sItemPrice 	.= (int) $value2['ItemPrice'] ;		
+				$sItemPrice 	.= $value2['ItemPrice'] ;		
 				$sItemTaxType 	.= (isset($value2['ItemTaxType'])) 	? $value2['ItemTaxType'] 	: '' ;
-				$sItemAmount	.= (int) $value2['ItemAmount'] ;
+				$sItemAmount	.= $value2['ItemAmount'] ;
 				
 				if( $nItems_Foreach_Count < $nItems_Count_Total )
 				{
@@ -1198,6 +1201,7 @@ class Opay_INVOICE_DELAY
     	function check_extend_string($arParameters = array()){
 		
     		$arErrors = array();
+    		$nCheck_Amount = 0 ; 	// 驗證總金額
 
     		// 4.廠商自訂編號
 	        	
@@ -1369,12 +1373,12 @@ class Opay_INVOICE_DELAY
 		
 		// 13.捐贈註記 Donation
 		
-		// *固定給定下述預設值若為捐贈時，則VAL = '1'，若為不捐贈時，則VAL = '2'
+		// *固定給定下述預設值若為捐贈時，則VAL = '1'，若為不捐贈時，則VAL = '0'
 		if ( ($arParameters['Donation'] != OPayDonation::Yes ) && ( $arParameters['Donation'] != OPayDonation::No ) )
 		{
 			array_push($arErrors, "13:Invalid Donation.");
 		}
-		// *若統一編號有值時，則VAL = '2' (不捐贈)
+		// *若統一編號有值時，則VAL = '0' (不捐贈)
 		if (strlen($arParameters['CustomerIdentifier']) > 0 && $arParameters['Donation'] == OPayDonation::Yes )
 		{
 			array_push($arErrors, "13:CustomerIdentifier Donation should be No.");
@@ -1553,17 +1557,27 @@ class Opay_INVOICE_DELAY
 					}
 					
 					// *ItemPrice數字判斷
-	        			if ( !preg_match('/^[-0-9]*$/', $value['ItemPrice']) )
+	        			if ( !preg_match('/(^[-0-9]*$)|([0-9]+\.[0-9]+)/', $value['ItemPrice']) )
 	        			{
-	        				array_push($arErrors, '23:Invalid ItemPrice.A');
+	        				array_push($arErrors, '23:Invalid ItemPrice.');
 	        			}
 	        			
 	        			// *ItemAmount數字判斷
-	        			if ( !preg_match('/^[-0-9]*$/', $value['ItemAmount']) )
+	        			if ( !preg_match('/(^[-0-9]*$)|([0-9]+\.[0-9]+)/', $value['ItemAmount']) )
 	        			{
-	        				array_push($arErrors, '25:Invalid ItemAmount.B');
+	        				array_push($arErrors, '25:Invalid ItemAmount.');
 	        			}
-	        		}	
+	        			else
+	        			{
+	        				$nCheck_Amount = $nCheck_Amount + $value['ItemAmount'] ;
+	        			}
+	        		}
+
+	        		// *檢查商品總金額
+				if ( $arParameters['SalesAmount'] != round($nCheck_Amount))
+				{
+					array_push($arErrors, "18.2:Invalid SalesAmount.");
+				}	
 	        	}
 	        }
 
@@ -1724,9 +1738,9 @@ class Opay_ALLOWANCE
 				$sItemName 	.= (isset($value2['ItemName']))		? $value2['ItemName'] 		: '' ;
 				$sItemCount 	.= (int) $value2['ItemCount'] ;
 				$sItemWord 	.= (isset($value2['ItemWord'])) 	? $value2['ItemWord'] 		: '' ;
-				$sItemPrice 	.= (int) $value2['ItemPrice'] ;		
+				$sItemPrice 	.= $value2['ItemPrice'] ;		
 				$sItemTaxType 	.= (isset($value2['ItemTaxType'])) 	? $value2['ItemTaxType'] 	: '' ;
-				$sItemAmount	.= (int) $value2['ItemAmount'] ;
+				$sItemAmount	.= $value2['ItemAmount'] ;
 				
 				if( $nItems_Foreach_Count < $nItems_Count_Total )
 				{
@@ -1758,6 +1772,7 @@ class Opay_ALLOWANCE
     	function check_extend_string($arParameters = array()){
 		
     		$arErrors = array();
+    		$nCheck_Amount = 0 ; 	// 驗證總金額
 
 		// 7.客戶名稱 CustomerName
 		// x僅能為中英數字格式
@@ -1849,16 +1864,26 @@ class Opay_ALLOWANCE
 					}
 					
 					// *ItemPrice數字判斷
-					if ( !preg_match('/^[-0-9]*$/', $value['ItemPrice']) )
+					if ( !preg_match('/(^[-0-9]*$)|([0-9]+\.[0-9]+)/', $value['ItemPrice']) )
 					{
-						array_push($arErrors, '23:Invalid ItemPrice.A');
+						array_push($arErrors, '23:Invalid ItemPrice.');
 					}
 					
 					// *ItemAmount數字判斷
-					if ( !preg_match('/^[-0-9]*$/', $value['ItemAmount']) )
+					if ( !preg_match('/(^[-0-9]*$)|([0-9]+\.[0-9]+)/', $value['ItemAmount']) )
 					{
-						array_push($arErrors, '25:Invalid ItemAmount.B');
+						array_push($arErrors, '25:Invalid ItemAmount.');
 					}
+					else
+	        			{
+	        				$nCheck_Amount = $nCheck_Amount + $value['ItemAmount'] ;
+	        			}
+				}
+
+				// *檢查商品總金額
+				if ( $arParameters['AllowanceAmount'] != round($nCheck_Amount))
+				{
+					array_push($arErrors, "41:Invalid AllowanceAmount.");
 				}	
 			}
 		}
@@ -2719,7 +2744,7 @@ class Opay_INVOICE_TRIGGER
 		}
 
 		// 34.交易類別 PayType
-		// *2016-10-4 修改為僅允許 2
+		// *2016-10-4 修改為僅允許 3
 		if( $arParameters['PayType'] != OPayPayTypeCategory::Allpay)
 		{
 			array_push($arErrors, "34:Invalid PayType.");

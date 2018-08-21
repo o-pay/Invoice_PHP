@@ -21,7 +21,7 @@ try
 		$aItems	= array();
 		
 		// 商品資訊
-		array_push($allpay_invoice->Send['Items'], array('ItemName' => '商品名稱一', 'ItemCount' => 1, 'ItemWord' => '批', 'ItemPrice' => 100, 'ItemTaxType' => 1, 'ItemAmount' => 100 ));
+		array_push($allpay_invoice->Send['Items'], array('ItemName' => '商品名稱一', 'ItemCount' => 1, 'ItemWord' => '批', 'ItemPrice' => 100.88, 'ItemTaxType' => 1, 'ItemAmount' => 100.88 ));
 		
 		// 產生測試用自訂訂單編號
 		$RelateNumber = 'ALLPAY'. date('YmdHis') . rand(1000000000,2147483647);
@@ -31,7 +31,7 @@ try
 		$allpay_invoice->Send['AllowanceNotify'] 	= 'E';
 		$allpay_invoice->Send['NotifyMail'] 		= 'test@localhost.com';
 		$allpay_invoice->Send['NotifyPhone'] 		= '';
-		$allpay_invoice->Send['AllowanceAmount'] 	= 100;
+		$allpay_invoice->Send['AllowanceAmount'] 	= 101;
 		
 		// 3.送出
 		$aReturn_Info = $allpay_invoice->Check_Out();

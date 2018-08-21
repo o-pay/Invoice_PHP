@@ -21,8 +21,10 @@ try
 		$aItems	= array();
 		
 		// 商品資訊
-		array_push($allpay_invoice->Send['Items'], array('ItemName' => '商品名稱一', 'ItemCount' => 1, 'ItemWord' => '批', 'ItemPrice' => 100, 'ItemTaxType' => 1, 'ItemAmount' => 100 ));
-		array_push($allpay_invoice->Send['Items'], array('ItemName' => '商品名稱二', 'ItemCount' => 2, 'ItemWord' => '件', 'ItemPrice' => 200, 'ItemTaxType' => 1, 'ItemAmount' => 400 ));
+		array_push($allpay_invoice->Send['Items'], array('ItemName' => '商品名稱一', 'ItemCount' => 1, 'ItemWord' => '批', 'ItemPrice' => 0, 'ItemTaxType' => 1, 'ItemAmount' => 0, 'ItemRemark' => '商品備註一'  )) ;
+		array_push($allpay_invoice->Send['Items'], array('ItemName' => '商品名稱二', 'ItemCount' => 1, 'ItemWord' => '批', 'ItemPrice' => 150.88, 'ItemTaxType' => 1, 'ItemAmount' => 150.88, 'ItemRemark' => '商品備註二' )) ;
+		array_push($allpay_invoice->Send['Items'], array('ItemName' => '商品名稱二', 'ItemCount' => 1, 'ItemWord' => '批', 'ItemPrice' => 250, 'ItemTaxType' => 1, 'ItemAmount' => 250, 'ItemRemark' => '商品備註三' )) ;
+
 		
 		// 產生測試用自訂訂單編號
 		$RelateNumber = 'ALLPAY'. date('YmdHis') . rand(1000000000,2147483647);
@@ -36,13 +38,13 @@ try
 		$allpay_invoice->Send['CustomerEmail'] 		= 'test@localhost.com';
 		$allpay_invoice->Send['ClearanceMark'] 		= '';
 		$allpay_invoice->Send['Print'] 			= '0';
-		$allpay_invoice->Send['Donation'] 		= '2';
+		$allpay_invoice->Send['Donation'] 		= '0';
 		$allpay_invoice->Send['LoveCode'] 		= '';
 		$allpay_invoice->Send['CarruerType'] 		= '';
 		$allpay_invoice->Send['CarruerNum'] 		= '';
 		$allpay_invoice->Send['TaxType'] 		= '1';
-		$allpay_invoice->Send['SalesAmount'] 		= '500';
-		$allpay_invoice->Send['InvoiceRemark'] 		= 'SDK TEST';	
+		$allpay_invoice->Send['SalesAmount'] 		= '401';
+		$allpay_invoice->Send['InvoiceRemark'] 		= 'v1.1.180716';	
 		$allpay_invoice->Send['InvType'] 		= '07';
 		$allpay_invoice->Send['DelayFlag'] 		= '1';
 		$allpay_invoice->Send['DelayDay'] 		= '1';
